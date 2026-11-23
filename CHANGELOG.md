@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **Export / Import** on the options page: save all rules and options to a JSON file, or load
+  them from one.
+
+### Fixed
+
+- Settings now sync between computers. The extension has a fixed ID (set by a `key` in the
+  manifest); before, an unpacked copy got an ID from its folder, so each computer had its own
+  separate settings. The ID changes once with this update: export your settings before updating,
+  then import them afterwards.
+
 ## [1.1.0] - 2026-11-23
 
 ### Changed

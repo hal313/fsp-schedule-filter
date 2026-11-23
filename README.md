@@ -24,7 +24,12 @@ and sync across your Chrome profile.
 
 Rules and options are stored in `chrome.storage.sync`, so they follow you to any computer signed
 in to the same Chrome profile (with **Extensions** turned on under Chrome's sync settings).
-Changes show up live in open schedule tabs, the popup and the options page. Sync limits each list
+Changes show up live in open schedule tabs, the popup and the options page.
+
+Chrome syncs an extension's settings by its ID. The `key` in `manifest.json` pins the ID to
+`kijgakbmppbaflajdbioiaoffodaokpd`, so every computer shares the same settings no matter which
+folder the extension is loaded from. Check the ID on `chrome://extensions` if settings don't
+show up. The matching private key isn't needed (the extension isn't published) and isn't kept. Sync limits each list
 of rules to about 8 KB; the popup says so if a save is refused.
 
 ## Options
@@ -35,6 +40,8 @@ Open the options page from the ⚙ button in the popup (or **Extension options**
 - **Use regular expressions in filters** (off by default): rule text is treated as a
   case-insensitive JavaScript regular expression, e.g. `^N8\d\d` or `Kruger|Smith`. A rule with
   an invalid expression matches nothing and is outlined in red in the popup.
+- **Export / Import** saves all rules and options to a JSON file, or loads them from one
+  (replacing the current settings after a confirmation).
 
 ## Install (unpacked)
 
