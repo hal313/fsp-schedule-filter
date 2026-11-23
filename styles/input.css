@@ -1,0 +1,25 @@
+/* Tailwind source for the popup and options page. Build with `npm run build:css`. */
+@import "tailwindcss" source(none);
+@source "../popup";
+@source "../options";
+
+@layer base {
+  code {
+    @apply rounded bg-slate-100 px-1 font-mono text-[11px] text-slate-700;
+  }
+}
+
+/* Checkboxes styled as on/off switches: <input type="checkbox" class="switch"> */
+@layer components {
+  .switch {
+    @apply relative h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors;
+    @apply checked:bg-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500;
+  }
+  .switch::before {
+    content: "";
+    @apply absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform;
+  }
+  .switch:checked::before {
+    @apply translate-x-4;
+  }
+}

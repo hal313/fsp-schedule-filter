@@ -15,7 +15,7 @@
   const STYLE_ID = 'fsp-ext-highlight-style';
   const TYPES = { 1: 'aircraft', 2: 'instructor' };
 
-  const DEFAULTS = { enabled: true, hide: [], highlight: [], show: { aircraft: [], instructor: [] } };
+  const DEFAULTS = { enabled: true, hide: [], highlight: [], show: [], useRegex: false };
   let settings = structuredClone(DEFAULTS);
   let lastScheduler = null;
   let lastReport = '';
@@ -26,15 +26,54 @@
     return decoder.value;
   };
 
-  const typeOf = (r) => TYPES[r.resourceTypeId] || 'other';
+  // Anything that isn't an aircraft or instructor (iPads, ADS-B receivers…) is a "resource".
+  const typeOf = (r) => TYPES[r.resourceTypeId] || 'resource';
   const nameOf = (r) => decode(r.name).replace(/\s+/g, ' ').trim();
 
   const activeRules = (list) =>
     settings.enabled ? (list || []).filter((rule) => rule && rule.text && rule.text.trim()) : [];
 
+  // With "Use regular expressions" on, rule text is a case-insensitive regex;
+  // an invalid one matches nothing. Otherwise it's a case-insensitive "contains".
+  const regexCache = new Map();
+  function regexFor(text) {
+    if (!regexCache.has(text)) {
+      let re = null;
+      try {
+        re = new RegExp(text, 'i');
+      } catch {}
+      regexCache.set(text, re);
+    }
+    return regexCache.get(text);
+  }
+
+  function textMatches(text, name) {
+    const pattern = text.trim();
+    if (settings.useRegex) return regexFor(pattern)?.test(name) ?? false;
+    return name.toLowerCase().includes(pattern.toLowerCase());
+  }
+
+  // Aircraft type, e.g. "Cessna Skyhawk 172M" from aircraftMake "Cessna Skyhawk"
+  // and aircraftModel "172M". Either field may be empty.
+  const clean = (v) => (typeof v === 'string' ? decode(v).replace(/\s+/g, ' ').trim() : '');
+  function modelOf(r) {
+    if (typeOf(r) !== 'aircraft') return '';
+    // Read from .data: fields not declared on the Bryntum model aren't record properties.
+    const d = r.data || r;
+    return [clean(d.aircraftMake), clean(d.aircraftModel)].filter(Boolean).join(' ');
+  }
+
+  // Aircraft rules match the row name ("N904RA (NO 141)"), the bare tail
+  // ("N904RA", so a regex like ^N904RA$ works) or the type ("Cessna Skyhawk 172M").
+  function matchTargets(r) {
+    const name = nameOf(r);
+    if (typeOf(r) !== 'aircraft') return [name];
+    return [name, name.split(' ')[0], modelOf(r)].filter(Boolean);
+  }
+
   const matches = (rule, r) =>
     (rule.type === 'any' || rule.type === typeOf(r)) &&
-    nameOf(r).toLowerCase().includes(rule.text.trim().toLowerCase());
+    matchTargets(r).some((target) => textMatches(rule.text, target));
 
   function getScheduler() {
     try {
@@ -51,30 +90,42 @@
     return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
   }
 
-  // "Show only" lists, per type. An empty list means that type is not restricted,
-  // so picking two aircraft leaves every instructor row alone (and vice versa).
-  function activeShowSets() {
-    const sets = {};
-    if (!settings.enabled) return sets;
-    for (const [type, names] of Object.entries(settings.show || {})) {
-      if (Array.isArray(names) && names.length) sets[type] = new Set(names);
+  // "Show only" rules, grouped by the row type they restrict. A type with no
+  // rules is left alone, so showing two aircraft keeps every instructor row.
+  // An "Any" rule restricts every type.
+  function showRulesByType() {
+    const byType = {};
+    for (const rule of activeRules(normalizeShow(settings.show))) {
+      const types = rule.type === 'any' ? ['aircraft', 'instructor', 'resource'] : [rule.type];
+      for (const t of types) (byType[t] ||= []).push(rule);
     }
-    return sets;
+    return byType;
+  }
+
+  // Earlier versions stored "show only" as checked names per type.
+  function normalizeShow(show) {
+    if (Array.isArray(show)) return show;
+    const rules = [];
+    for (const [type, names] of Object.entries(show || {})) {
+      for (const text of names || []) rules.push({ type, text });
+    }
+    return rules;
   }
 
   const filterActive = () =>
-    activeRules(settings.hide).length > 0 || Object.keys(activeShowSets()).length > 0;
+    activeRules(settings.hide).length > 0 || Object.keys(showRulesByType()).length > 0;
 
   function applyHide(store) {
     const rules = activeRules(settings.hide);
-    const show = activeShowSets();
+    const show = showRulesByType();
     const existing = store.filters?.get?.(FILTER_ID);
     if (filterActive()) {
       store.filter({
         id: FILTER_ID,
         filterBy: (r) => {
+          // A "show only" match always wins, even over a hide rule.
           const allowed = show[typeOf(r)];
-          if (allowed && !allowed.has(nameOf(r))) return false;
+          if (allowed) return allowed.some((rule) => matches(rule, r));
           return !rules.some((rule) => matches(rule, r));
         },
       });
@@ -113,7 +164,7 @@
 
   function report(store) {
     const all = store.allRecords || store.records || [];
-    const resources = all.map((r) => ({ name: nameOf(r), type: typeOf(r) }));
+    const resources = all.map((r) => ({ name: nameOf(r), type: typeOf(r), model: modelOf(r) }));
     const hidden = all.length - store.count;
     const payload = JSON.stringify({ resources, hidden });
     if (payload === lastReport) return;
@@ -141,7 +192,11 @@
     if (!s || !s.resourceStore) return;
     const needsFilter = filterActive();
     const hasFilter = !!s.resourceStore.filters?.get?.(FILTER_ID);
-    if (s !== lastScheduler || needsFilter !== hasFilter || !document.getElementById(STYLE_ID)) {
+    if (
+      s !== lastScheduler ||
+      needsFilter !== hasFilter ||
+      !document.getElementById(STYLE_ID)
+    ) {
       apply();
     } else {
       applyHighlight(s.resourceStore); // cheap; picks up newly loaded resources

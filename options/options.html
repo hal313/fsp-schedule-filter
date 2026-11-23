@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FSP Schedule Filter Options</title>
+    <link rel="stylesheet" href="../styles/ui.css" />
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    <main class="mx-auto max-w-2xl px-4 py-10">
+      <header class="mb-6">
+        <h1 class="text-2xl font-semibold tracking-tight">FSP Schedule Filter</h1>
+        <p class="mt-1 text-sm text-slate-500">Changes are saved automatically.</p>
+      </header>
+
+      <section class="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <label for="useRegex" class="flex cursor-pointer items-start justify-between gap-6 p-5">
+          <span>
+            <span class="block font-medium">Use regular expressions in filters</span>
+            <span class="mt-1 block text-sm text-slate-500">
+              Treat the text in Show only, Hide and Highlight rules as a
+              <a
+                class="text-sky-700 underline hover:text-sky-900"
+                href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions"
+                target="_blank"
+                rel="noopener"
+                >JavaScript regular expression</a
+              >
+              instead of plain text. Matching stays case-insensitive.
+            </span>
+            <span class="mt-3 block text-sm text-slate-500">
+              Examples:
+              <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">^N8\d\d</code>
+              tail numbers starting with N8, or
+              <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">Kruger|Smith</code>
+              either instructor.
+            </span>
+          </span>
+          <input id="useRegex" type="checkbox" class="switch mt-0.5" />
+        </label>
+      </section>
+
+      <p
+        id="saved"
+        class="mt-4 text-sm text-emerald-700 opacity-0 transition-opacity duration-300"
+        aria-live="polite"
+      >
+        Saved
+      </p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -2,62 +2,80 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="../styles/ui.css" />
   </head>
-  <body>
-    <header>
-      <h1>FSP Schedule Filter</h1>
-      <label class="toggle"><input type="checkbox" id="enabled" /> Enabled</label>
+  <body class="w-[380px] bg-white px-3.5 py-3 text-[13px] leading-snug text-slate-800 antialiased">
+    <header class="flex items-center justify-between">
+      <h1 class="text-[15px] font-semibold">FSP Schedule Filter</h1>
+      <span class="flex items-center gap-2">
+        <label class="flex cursor-pointer items-center gap-1.5 text-slate-600">
+          <input type="checkbox" id="enabled" class="switch" /> Enabled
+        </label>
+        <button
+          id="open-options"
+          type="button"
+          title="Options"
+          class="cursor-pointer rounded px-1.5 text-base text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+        >
+          ⚙
+        </button>
+      </span>
     </header>
-    <p id="status" class="muted"></p>
+    <p id="status" class="mt-1 text-xs text-slate-500"></p>
 
-    <section>
-      <div class="section-head">
-        <h2>Show only</h2>
+    <section class="mt-3">
+      <div class="mb-1.5 flex items-center justify-between">
+        <h2 class="font-semibold">Show only</h2>
+        <button id="add-show" type="button" class="cursor-pointer rounded border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs hover:bg-slate-100">+ Add</button>
       </div>
-      <p class="muted small-top">Check rows to show just those. Nothing checked in a group shows the whole group.</p>
-      <details class="picker" data-type="aircraft">
-        <summary>Aircraft <span class="count"></span><button class="clear" type="button">Clear</button></summary>
-        <ul class="checklist"></ul>
-      </details>
-      <details class="picker" data-type="instructor">
-        <summary>Instructors <span class="count"></span><button class="clear" type="button">Clear</button></summary>
-        <ul class="checklist"></ul>
-      </details>
+      <p class="-mt-0.5 mb-1.5 text-[11px] text-slate-500" hidden>Only matching rows of that type are shown. Types with no rule here show everything.</p>
+      <ul id="show-list" class="space-y-1.5"></ul>
     </section>
 
-    <section>
-      <div class="section-head">
-        <h2>Hide rows</h2>
-        <button id="add-hide" type="button">+ Add</button>
+    <section class="mt-3">
+      <div class="mb-1.5 flex items-center justify-between">
+        <h2 class="font-semibold">Highlight rows</h2>
+        <button id="add-highlight" type="button" class="cursor-pointer rounded border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs hover:bg-slate-100">+ Add</button>
       </div>
-      <ul id="hide-list" class="rules"></ul>
+      <ul id="highlight-list" class="space-y-1.5"></ul>
     </section>
 
-    <section>
-      <div class="section-head">
-        <h2>Highlight rows</h2>
-        <button id="add-highlight" type="button">+ Add</button>
+    <section class="mt-3">
+      <div class="mb-1.5 flex items-center justify-between">
+        <h2 class="font-semibold">Hide rows</h2>
+        <button id="add-hide" type="button" class="cursor-pointer rounded border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs hover:bg-slate-100">+ Add</button>
       </div>
-      <ul id="highlight-list" class="rules"></ul>
+      <ul id="hide-list" class="space-y-1.5"></ul>
     </section>
 
-    <p class="muted small">Matches are case-insensitive "contains" on the row name, e.g. <code>N816</code> or <code>Kruger</code>.</p>
+    <p id="match-hint" class="mt-3 text-[11px] text-slate-500" hidden>Matches are case-insensitive "contains" on the row name, e.g. <code>N816</code> or <code>Kruger</code>.</p>
 
     <datalist id="names-aircraft"></datalist>
     <datalist id="names-instructor"></datalist>
+    <datalist id="names-resource"></datalist>
     <datalist id="names-any"></datalist>
 
     <template id="rule-template">
-      <li class="rule">
-        <select class="type">
+      <li class="flex items-center gap-1.5">
+        <select class="type w-[92px] rounded border border-slate-300 bg-white px-1 py-0.5 focus:border-sky-500 focus:outline-none">
           <option value="aircraft">Aircraft</option>
           <option value="instructor">Instructor</option>
-          <option value="any">Either</option>
+          <option value="resource">Resource</option>
+          <option value="any">Any</option>
         </select>
-        <input class="text" type="text" placeholder="Text to match" />
-        <input class="color" type="color" value="#ffd54f" />
-        <button class="remove" type="button" title="Remove">✕</button>
+        <input
+          class="text min-w-0 flex-1 rounded border border-slate-300 px-1.5 py-0.5 focus:border-sky-500 focus:outline-none"
+          type="text"
+          placeholder="Text to match"
+        />
+        <input class="color h-6 w-7 shrink-0 cursor-pointer rounded border border-slate-300 bg-white p-0" type="color" value="#ffd54f" />
+        <button
+          class="remove cursor-pointer rounded px-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+          type="button"
+          title="Remove"
+        >
+          ✕
+        </button>
       </li>
     </template>
 
