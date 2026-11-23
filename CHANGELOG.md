@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-23
+
+### Changed
+
+- Aircraft rules are tested against the row name and aircraft type as one text
+  (`N904RA Cessna Skyhawk 172M`) instead of each separately, so a single regular expression can
+  combine them, e.g. `^(?!.*redbird).*172` for every 172 except a Redbird. To match one tail
+  exactly, use `^N904RA\b` instead of `^N904RA$`.
+
 ## [1.0.0] - 2026-11-23
 
 ### Added

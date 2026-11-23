@@ -12,8 +12,10 @@ A Chrome extension that hides and highlights rows on the
 - **Highlight** aircraft, instructor or resource rows with a color of your choice (e.g. `Kruger`
   in green).
 
-Aircraft rules match the tail number (`N904RA`) or the aircraft type (`Cessna Skyhawk 172M`),
-so `172M` picks out every 172M on the schedule.
+Aircraft rules match against the row name and aircraft type together, e.g.
+`N904RA Cessna Skyhawk 172M`, so `N904` or `172M` both work. With regular expressions on, one
+pattern can look at both parts: `^(?!.*redbird).*172` shows every 172 except a Redbird, and
+`^N904RA\b` matches one tail exactly.
 
 Rules are case-insensitive "contains" matches (or regular expressions, see [Options](#options))
 and sync across your Chrome profile.

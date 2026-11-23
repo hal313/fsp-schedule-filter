@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FSP Schedule Filter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Hide and highlight aircraft and instructor rows on the Flight Schedule Pro schedule.",
   "permissions": ["storage"],
   "options_ui": {

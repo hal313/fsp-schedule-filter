@@ -63,17 +63,17 @@
     return [clean(d.aircraftMake), clean(d.aircraftModel)].filter(Boolean).join(' ');
   }
 
-  // Aircraft rules match the row name ("N904RA (NO 141)"), the bare tail
-  // ("N904RA", so a regex like ^N904RA$ works) or the type ("Cessna Skyhawk 172M").
-  function matchTargets(r) {
+  // The text a rule is tested against. For aircraft it's the row name and the
+  // type as one string, e.g. "N904RA Cessna Skyhawk 172M", so a single regex
+  // sees both: ^(?!.*redbird).*172 excludes "Redbird" wherever it appears.
+  function matchText(r) {
     const name = nameOf(r);
-    if (typeOf(r) !== 'aircraft') return [name];
-    return [name, name.split(' ')[0], modelOf(r)].filter(Boolean);
+    if (typeOf(r) !== 'aircraft') return name;
+    return [name, modelOf(r)].filter(Boolean).join(' ');
   }
 
   const matches = (rule, r) =>
-    (rule.type === 'any' || rule.type === typeOf(r)) &&
-    matchTargets(r).some((target) => textMatches(rule.text, target));
+    (rule.type === 'any' || rule.type === typeOf(r)) && textMatches(rule.text, matchText(r));
 
   function getScheduler() {
     try {
