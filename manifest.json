@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FSP Schedule Filter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqy+z+pNzjUsyY2c0F768jB/nXhWwqSLvEDUfKoK/BPzESdpOdKCYzgkriOXqZxIG6s6cl5ejvMktbd2C2f+KnqGdgPtFNVSuB/73pnqadvhwahU6i5nof2tNHzkI51EMXd3Q8gca2iEtVWNot82f0/KjkDsN5MTrBjRqd+FlMkdnDCbuX0sYc7O6SmLhnVEWKvVsOOcIjOpouE/+y5aj8/Xsw7r4m8kpPJJMCJ08FK1fLIfteIfdWbfVJxmb0avrjlV7HfiqrrhgQWQogjr3zQCfcvBwMB3Sl4w/Y9RkTXwtJCKcPO77ezlMrrbGaK7vvAcgmy2eMUbnth8SEp+KtwIDAQAB",
   "description": "Hide and highlight aircraft and instructor rows on the Flight Schedule Pro schedule.",
   "permissions": ["storage"],

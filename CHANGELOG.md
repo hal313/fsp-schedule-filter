@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-23
+
 ### Added
 
 - **Export / Import** on the options page: save all rules and options to a JSON file, or load
