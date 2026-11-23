@@ -1,4 +1,4 @@
-const DEFAULTS = { enabled: true, hide: [], highlight: [] };
+const DEFAULTS = { enabled: true, hide: [], highlight: [], show: { aircraft: [], instructor: [] } };
 const HIGHLIGHT_COLORS = ['#ffd54f', '#81c784', '#64b5f6', '#ff8a65', '#ba68c8', '#4dd0e1'];
 
 let settings = structuredClone(DEFAULTS);
@@ -84,6 +84,71 @@ function fillDatalists(resources) {
   }
 }
 
+// --- "Show only" checklists ---
+
+let pageResources = [];
+
+function renderPickers() {
+  for (const picker of document.querySelectorAll('.picker')) {
+    const type = picker.dataset.type;
+    const selected = settings.show[type];
+    const onPage = pageResources.filter((r) => r.type === type).map((r) => r.name);
+    // Keep saved picks visible even if they're not on today's schedule.
+    const names = [...new Set([...onPage, ...selected])];
+    const list = picker.querySelector('.checklist');
+    list.replaceChildren();
+
+    if (!names.length) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = 'Open the schedule to load names';
+      list.appendChild(li);
+    }
+    for (const name of names) {
+      const li = document.createElement('li');
+      const label = document.createElement('label');
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = selected.includes(name);
+      box.addEventListener('change', () => {
+        const set = new Set(settings.show[type]);
+        box.checked ? set.add(name) : set.delete(name);
+        settings.show[type] = [...set];
+        save();
+        updateCount(picker);
+      });
+      const span = document.createElement('span');
+      span.textContent = name;
+      if (!onPage.includes(name)) {
+        span.classList.add('missing');
+        span.title = 'Not on the current schedule';
+      }
+      label.append(box, span);
+      li.appendChild(label);
+      list.appendChild(li);
+    }
+    updateCount(picker);
+  }
+}
+
+function updateCount(picker) {
+  const n = settings.show[picker.dataset.type].length;
+  picker.querySelector('.count').textContent = n ? `(${n} selected)` : '(all)';
+  picker.querySelector('.clear').hidden = n === 0;
+}
+
+function initPickers() {
+  for (const picker of document.querySelectorAll('.picker')) {
+    picker.querySelector('.clear').addEventListener('click', (e) => {
+      e.preventDefault(); // don't toggle the <details>
+      settings.show[picker.dataset.type] = [];
+      save();
+      renderPickers();
+    });
+  }
+  renderPickers();
+}
+
 async function loadStatus() {
   const status = $('#status');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -95,6 +160,8 @@ async function loadStatus() {
     const res = await chrome.tabs.sendMessage(tab.id, { type: 'getStatus' });
     if (res?.resources?.length) {
       fillDatalists(res.resources);
+      pageResources = res.resources;
+      renderPickers();
       status.textContent = `${res.resources.length} rows on the schedule, ${res.hidden} hidden.`;
     } else {
       status.textContent = 'Waiting for the schedule to load…';
@@ -106,6 +173,7 @@ async function loadStatus() {
 
 async function init() {
   settings = await chrome.storage.sync.get(DEFAULTS);
+  settings.show = { ...structuredClone(DEFAULTS.show), ...settings.show };
   $('#enabled').checked = settings.enabled;
   $('#enabled').addEventListener('change', (e) => {
     settings.enabled = e.target.checked;
@@ -115,6 +183,7 @@ async function init() {
   $('#add-highlight').addEventListener('click', () => addRule('highlight'));
   render('hide');
   render('highlight');
+  initPickers();
   loadStatus();
 }
 

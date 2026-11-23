@@ -3,6 +3,8 @@
 A Chrome extension that hides and highlights rows on the
 [Flight Schedule Pro](https://app.flightschedulepro.com/App/Schedule) schedule.
 
+- **Show only** the aircraft and instructors you check. Each group is independent: checking two
+  aircraft leaves all instructors visible, and a group with nothing checked shows everything.
 - **Hide** aircraft or instructor rows whose name contains some text (e.g. `N816`, `Ground Only`).
 - **Highlight** aircraft or instructor rows with a color of your choice (e.g. `Kruger` in green).
 
@@ -21,7 +23,7 @@ The schedule grid is a [Bryntum Scheduler](https://bryntum.com/products/schedule
 
 - `src/page.js` runs in the page's main world so it can reach the scheduler instance
   (`bryntum.query('scheduler')`).
-  - **Hide** adds a filter (`fsp-ext-hide`) to the scheduler's `resourceStore`, so rows collapse
+  - **Show only** and **Hide** share one filter (`fsp-ext-hide`) to the scheduler's `resourceStore`, so rows collapse
     cleanly instead of leaving gaps, and work with the grid's row virtualization.
   - **Highlight** writes a stylesheet keyed on each row's `data-id`, which colors both the name
     column and the timeline row.

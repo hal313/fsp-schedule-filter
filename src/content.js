@@ -3,7 +3,7 @@
 (() => {
   const SRC_PAGE = 'fsp-filter:page';
   const SRC_EXT = 'fsp-filter:ext';
-  const DEFAULTS = { enabled: true, hide: [], highlight: [] };
+  const DEFAULTS = { enabled: true, hide: [], highlight: [], show: { aircraft: [], instructor: [] } };
 
   let status = { resources: [], hidden: 0 };
 

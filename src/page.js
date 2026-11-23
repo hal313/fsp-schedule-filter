@@ -15,7 +15,8 @@
   const STYLE_ID = 'fsp-ext-highlight-style';
   const TYPES = { 1: 'aircraft', 2: 'instructor' };
 
-  let settings = { enabled: true, hide: [], highlight: [] };
+  const DEFAULTS = { enabled: true, hide: [], highlight: [], show: { aircraft: [], instructor: [] } };
+  let settings = structuredClone(DEFAULTS);
   let lastScheduler = null;
   let lastReport = '';
 
@@ -50,11 +51,33 @@
     return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
   }
 
+  // "Show only" lists, per type. An empty list means that type is not restricted,
+  // so picking two aircraft leaves every instructor row alone (and vice versa).
+  function activeShowSets() {
+    const sets = {};
+    if (!settings.enabled) return sets;
+    for (const [type, names] of Object.entries(settings.show || {})) {
+      if (Array.isArray(names) && names.length) sets[type] = new Set(names);
+    }
+    return sets;
+  }
+
+  const filterActive = () =>
+    activeRules(settings.hide).length > 0 || Object.keys(activeShowSets()).length > 0;
+
   function applyHide(store) {
     const rules = activeRules(settings.hide);
+    const show = activeShowSets();
     const existing = store.filters?.get?.(FILTER_ID);
-    if (rules.length) {
-      store.filter({ id: FILTER_ID, filterBy: (r) => !rules.some((rule) => matches(rule, r)) });
+    if (filterActive()) {
+      store.filter({
+        id: FILTER_ID,
+        filterBy: (r) => {
+          const allowed = show[typeOf(r)];
+          if (allowed && !allowed.has(nameOf(r))) return false;
+          return !rules.some((rule) => matches(rule, r));
+        },
+      });
     } else if (existing) {
       store.removeFilter(FILTER_ID);
     }
@@ -116,7 +139,7 @@
   function watchdog() {
     const s = getScheduler();
     if (!s || !s.resourceStore) return;
-    const needsFilter = activeRules(settings.hide).length > 0;
+    const needsFilter = filterActive();
     const hasFilter = !!s.resourceStore.filters?.get?.(FILTER_ID);
     if (s !== lastScheduler || needsFilter !== hasFilter || !document.getElementById(STYLE_ID)) {
       apply();
@@ -129,7 +152,7 @@
   window.addEventListener('message', (e) => {
     if (e.source !== window || e.data?.source !== SRC_EXT) return;
     if (e.data.type === 'settings') {
-      settings = { enabled: true, hide: [], highlight: [], ...e.data.settings };
+      settings = { ...structuredClone(DEFAULTS), ...e.data.settings };
       apply();
     } else if (e.data.type === 'requestStatus') {
       lastReport = '';
